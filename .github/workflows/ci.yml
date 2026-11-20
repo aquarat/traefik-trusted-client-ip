@@ -1,0 +1,27 @@
+name: CI
+on:
+  push:
+  pull_request:
+jobs:
+  test:
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+        with:
+          path: go/src/github.com/aquarat/traefik-trusted-client-ip
+      - uses: actions/setup-go@v5
+        with:
+          go-version: stable
+      - name: gofmt and vet
+        working-directory: go/src/github.com/aquarat/traefik-trusted-client-ip
+        run: |
+          test -z "$(gofmt -l .)"
+          go vet ./...
+      - name: Go tests
+        working-directory: go/src/github.com/aquarat/traefik-trusted-client-ip
+        run: go test -race -count=1 ./...
+      - name: Yaegi tests (the interpreter Traefik uses)
+        env:
+          GOPATH: ${{ github.workspace }}/go
+        working-directory: go
+        run: go run github.com/traefik/yaegi/cmd/yaegi@v0.16.1 test -v github.com/aquarat/traefik-trusted-client-ip

@@ -1,0 +1,12 @@
+displayName: Trusted Client IP
+type: middleware
+import: github.com/aquarat/traefik-trusted-client-ip
+summary: Set X-Forwarded-For, X-Real-Ip and the remote address from a header written by a trusted upstream (e.g. Cloudflare's CF-Connecting-IP), and strip client-supplied forwarding headers.
+
+testData:
+  trustedCIDRs:
+    - 172.19.0.1/32
+  sourceHeader: CF-Connecting-IP
+  rewriteRemoteAddr: true
+  stripUntrusted: true
+  onMissing: strip
