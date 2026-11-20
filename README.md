@@ -26,7 +26,7 @@ For every request:
   - If the header is missing or invalid (a list, a port, a zone, garbage), the forwarding headers are removed so backends fall back to the peer address. Set `onMissing: reject` to answer 400 instead.
 - **Any other peer:** `sourceHeader`, `X-Forwarded-For`, `X-Real-Ip` and `Forwarded` are removed (`stripUntrusted`, default on). A client that reaches Traefik directly, for example on the LAN, cannot pretend to be someone else.
 
-IPv4-mapped IPv6 addresses (`::ffff:198.51.100.9`) are normalised to IPv4.
+IPv4-mapped IPv6 addresses (`::ffff:198.51.100.9`) are normalised to IPv4. A request is processed only once: if the middleware sits on both the entry point and a router, the second instance passes the request through untouched.
 
 Because Traefik appends the remote address after middlewares run, a backend normally receives `X-Forwarded-For: <ip>, <ip>`: the same real address twice. That is correct whether the backend reads the leftmost or the rightmost entry.
 

@@ -207,3 +207,18 @@ func TestIPv6TrustedPeer(t *testing.T) {
 		t.Fatalf("xff=%q", s.xff)
 	}
 }
+
+func TestSecondInstanceIsNoop(t *testing.T) {
+	inner, s := build(t, cfg("172.19.0.1"))
+	outer, err := New(context.Background(), inner, cfg("172.19.0.1"), "outer")
+	if err != nil {
+		t.Fatal(err)
+	}
+	outer.ServeHTTP(httptest.NewRecorder(), req("172.19.0.1:9", map[string]string{
+		"CF-Connecting-IP": "198.51.100.9",
+		"X-Forwarded-For":  "203.0.113.77",
+	}))
+	if s.xff != "198.51.100.9" || s.source != "198.51.100.9" || s.remoteAddr != "198.51.100.9:9" {
+		t.Fatalf("second instance changed the request: %+v", s)
+	}
+}

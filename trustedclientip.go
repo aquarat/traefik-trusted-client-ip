@@ -58,6 +58,11 @@ func CreateConfig() *Config {
 	}
 }
 
+// processedKey marks a request this plugin has already handled, so a second
+// instance in the chain (e.g. on the entry point and on a router) is a no-op
+// instead of treating the rewritten remote address as an untrusted peer.
+type processedKey struct{}
+
 // TrustedClientIP is the middleware.
 type TrustedClientIP struct {
 	next              http.Handler
@@ -121,6 +126,12 @@ func New(_ context.Context, next http.Handler, config *Config, name string) (htt
 }
 
 func (m *TrustedClientIP) ServeHTTP(rw http.ResponseWriter, req *http.Request) {
+	if req.Context().Value(processedKey{}) != nil {
+		m.next.ServeHTTP(rw, req)
+		return
+	}
+	req = req.WithContext(context.WithValue(req.Context(), processedKey{}, true))
+
 	if !m.isTrustedPeer(req.RemoteAddr) {
 		if m.stripUntrusted {
 			req.Header.Del(m.sourceHeader)
